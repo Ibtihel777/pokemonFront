@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { styled } from '@mui/material/styles';
+import { keyframes } from '@emotion/react';
+
 import { 
   Box, 
   Typography, 
@@ -31,6 +34,36 @@ import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { getCategories } from '../services/categoryService';
 import { getPokemons } from '../services/pokemonServices';
 import api from '../services/api';
+
+
+// Import Pokemon font (you'll need to include this in your project)
+// Add this to your CSS or import the font file
+const pokemonFontStyle = {
+  fontFamily: '"Pokemon Solid", sans-serif',
+  letterSpacing: '2px',
+  textShadow: '3px 3px 0 #3B4CCA, -1px -1px 0 #3B4CCA, 1px -1px 0 #3B4CCA, -1px 1px 0 #3B4CCA, 1px 1px 0 #3B4CCA',
+  color: '#FFDE00'
+};
+const float = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+`;
+
+const GameCard = styled(Card)(({ theme }) => ({
+  maxWidth: 345,
+  margin: 'auto',
+  transition: '0.3s',
+  borderRadius: '16px',
+  boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+  '&:hover': {
+    transform: 'scale(1.05)',
+    boxShadow: '0 12px 24px rgba(255,203,5,0.3)',
+    animation: `${float} 3s ease infinite`,
+  },
+  background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
+}));
+
 
 const cardData = [
   { image: '/card2.jpg', name: "Glaceon" },
@@ -76,7 +109,6 @@ const pokemonEvents = [
   }
 ];
 
-
 const reviewers = [
   {id: 11, firstName: "Ash", lastName: "Ketchum"},
   {id: 12, firstName: "Misty", lastName: "Waterflower"},
@@ -88,6 +120,58 @@ const reviewers = [
   {id: 18, firstName: "Cynthia", lastName: "Shirona"},
   {id: 19, firstName: "Lance", lastName: "Dragonsbane"},
   {id: 20, firstName: "Professor", lastName: "Oak"}
+];
+const games = [
+  {
+    title: "Pokémon Legends: Arceus",
+    image: "game1.jpg",
+    description: "Experience a new style of Pokémon adventure in a Sinnoh of old. Catch, survey, and research wild Pokémon to create the region's first Pokédex!",
+    year: 2022,
+    rating: "9/10",
+    platforms: ["Nintendo Switch"]
+  },
+ 
+  {
+    title: "Pokémon Emerald",
+    image: "game3.jpg",
+    description: "The definitive version of the Hoenn adventures, featuring the Battle Frontier and an expanded storyline with both Team Aqua and Team Magma.",
+    year: 2004,
+    rating: "9/10",
+    platforms: ["Game Boy Advance"]
+  },
+  {
+    title: "Pokémon Platinum",
+    image: "game5.jpg",
+    description: "The enhanced version of Diamond and Pearl, with the Distortion World, Battle Frontier, and an expanded Sinnoh Pokédex.",
+    year: 2008,
+    rating: "9/10",
+    platforms: ["Nintendo DS"]
+  },
+  {
+    title: "Pokémon Black 2 & White 2",
+    image: "game4.jpg",
+    description: "Direct sequels to Black and White, featuring new areas, an expanded Pokédex, and the challenging Pokémon World Tournament.",
+    year: 2012,
+    rating: "9/10",
+    platforms: ["Nintendo DS"]
+  },
+  
+  {
+    title: "Pokémon FireRed & LeafGreen",
+    image: "game6.jpg",
+    description: "Faithful remakes of the original Red and Blue games, now with updated graphics, the Sevii Islands, and compatibility with Ruby and Sapphire.",
+    year: 2004,
+    rating: "9/10",
+    platforms: ["Game Boy Advance"]
+  },
+   {
+    title: "Pokémon HeartGold & SoulSilver",
+    image: "game2.jpg",
+    description: "Return to the Johto region in these enhanced remakes of the classic Gold and Silver games, now with updated graphics and features.",
+    year: 2009,
+    rating: "9.5/10",
+    platforms: ["Nintendo DS"]
+  }
 ];
 
 const HomePage = () => {
@@ -110,58 +194,57 @@ const HomePage = () => {
     text: ''
   });
   
-  // Ajoutez ces fonctions en haut de votre composant (avant le return)
-const getTypeIcon = (type) => {
-  const typeIcons = {
-    fire: '🔥',
-    water: '💧',
-    grass: '🌿',
-    electric: '⚡',
-    psychic: '🌀',
-    ice: '❄️',
-    dragon: '🐉',
-    dark: '🌑',
-    fairy: '✨',
-    normal: '🟤',
-    fighting: '🥊',
-    flying: '🕊️',
-    poison: '☠️',
-    ground: '⛰️',
-    rock: '🪨',
-    bug: '🐛',
-    ghost: '👻',
-    steel: '⚙️'
+  const getTypeIcon = (type) => {
+    const typeIcons = {
+      fire: '🔥',
+      water: '💧',
+      grass: '🌿',
+      electric: '⚡',
+      psychic: '🌀',
+      ice: '❄️',
+      dragon: '🐉',
+      dark: '🌑',
+      fairy: '✨',
+      normal: '🟤',
+      fighting: '🥊',
+      flying: '🕊️',
+      poison: '☠️',
+      ground: '⛰️',
+      rock: '🪨',
+      bug: '🐛',
+      ghost: '👻',
+      steel: '⚙️'
+    };
+    return typeIcons[type.toLowerCase()] || '❓';
   };
-  return typeIcons[type.toLowerCase()] || '❓';
-};
 
-const getTypeColor = (type) => {
-  const typeColors = {
-    fire: '#F08030',
-    water: '#6890F0',
-    grass: '#78C850',
-    electric: '#F8D030',
-    psychic: '#F85888',
-    ice: '#98D8D8',
-    dragon: '#7038F8',
-    dark: '#705848',
-    fairy: '#EE99AC',
-    normal: '#A8A878',
-    fighting: '#C03028',
-    flying: '#A890F0',
-    poison: '#A040A0',
-    ground: '#E0C068',
-    rock: '#B8A038',
-    bug: '#A8B820',
-    ghost: '#705898',
-    steel: '#B8B8D0'
+  const getTypeColor = (type) => {
+    const typeColors = {
+      fire: '#F08030',
+      water: '#6890F0',
+      grass: '#78C850',
+      electric: '#F8D030',
+      psychic: '#F85888',
+      ice: '#98D8D8',
+      dragon: '#7038F8',
+      dark: '#705848',
+      fairy: '#EE99AC',
+      normal: '#A8A878',
+      fighting: '#C03028',
+      flying: '#A890F0',
+      poison: '#A040A0',
+      ground: '#E0C068',
+      rock: '#B8A038',
+      bug: '#A8B820',
+      ghost: '#705898',
+      steel: '#B8B8D0'
+    };
+    return typeColors[type.toLowerCase()] || '#777';
   };
-  return typeColors[type.toLowerCase()] || '#777';
-};
+  
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   
-
   const getReviewerName = (reviewId) => {
     const reviewerIndex = (reviewId - 11) % reviewers.length;
     const reviewer = reviewers[reviewerIndex] || {firstName: "Unknown", lastName: "Trainer"};
@@ -176,22 +259,19 @@ const getTypeColor = (type) => {
       .toUpperCase()
       .substring(0, 2);
   };
+  
   const getPokemonCategories = (pokemonName) => {
-  if (categoriesLoading) return ['normal']; // Default while loading
+    if (categoriesLoading) return ['normal'];
+    const pokemonCategories = [];
+    categories.forEach(category => {
+      if (pokemonByCategory[category.id]?.some(p => p.name === pokemonName)) {
+        pokemonCategories.push(category.name.toLowerCase());
+      }
+    });
+    return pokemonCategories.length > 0 ? pokemonCategories : ['normal'];
+  };
   
-  // Find which categories this Pokémon belongs to
-  const pokemonCategories = [];
-  
-  categories.forEach(category => {
-    if (pokemonByCategory[category.id]?.some(p => p.name === pokemonName)) {
-      pokemonCategories.push(category.name.toLowerCase());
-    }
-  });
-  
-  return pokemonCategories.length > 0 ? pokemonCategories : ['normal'];
-};
-  //  this useEffect for fetching categories
- useEffect(() => {
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const data = await getCategories();
@@ -204,11 +284,10 @@ const getTypeColor = (type) => {
     };
     fetchCategories();
   }, []);
-  // Fetch Pokémon for categories
+  
   useEffect(() => {
     const fetchPokemonForCategories = async () => {
       if (categoriesLoading || categories.length === 0) return;
-      
       const pokemonData = {};
       for (const category of categories) {
         try {
@@ -221,7 +300,6 @@ const getTypeColor = (type) => {
       }
       setPokemonByCategory(pokemonData);
     };
-
     fetchPokemonForCategories();
   }, [categories, categoriesLoading]);
 
@@ -240,7 +318,8 @@ const getTypeColor = (type) => {
         setLoading(false);
       }
     };
-       const fetchReviews = async () => {
+    
+    const fetchReviews = async () => {
       try {
         const response = await api.get('/review');
         const processedReviews = response.data.map((review) => ({
@@ -271,11 +350,6 @@ const getTypeColor = (type) => {
     return () => clearInterval(cardInterval);
   }, []);
     
-
-
-
- 
-
   const handleNext = () => {
     setCurrentIndex(prev => (prev === pokemons.length - 1 ? 0 : prev + 1));
   };
@@ -302,31 +376,32 @@ const getTypeColor = (type) => {
     setNewReview(prev => ({ ...prev, rating: newValue }));
   };
 
-const handleSubmitReview = async () => {
+  const handleSubmitReview = async () => {
     try {
-        const response = await api.post('/review', {
-            Title: newReview.pokemonName,
-            Text: newReview.text,
-            Rating: newReview.rating
-        });
-        
-        const addedReview = {
-            ...response.data,
-            reviewerName: "You",
-            date: new Date(),
-            pokemonName: newReview.pokemonName
-        };
-        
-        setReviews(prev => [addedReview, ...prev]);
-        setSnackbarMessage('Review submitted successfully!');
-        setSnackbarOpen(true);
-        handleCloseReviewDialog();
+      const response = await api.post('/review', {
+        Title: newReview.pokemonName,
+        Text: newReview.text,
+        Rating: newReview.rating
+      });
+      
+      const addedReview = {
+        ...response.data,
+        reviewerName: "You",
+        date: new Date(),
+        pokemonName: newReview.pokemonName
+      };
+      
+      setReviews(prev => [addedReview, ...prev]);
+      setSnackbarMessage('Review submitted successfully!');
+      setSnackbarOpen(true);
+      handleCloseReviewDialog();
     } catch (err) {
-        console.error('Failed to submit review:', err);
-        setSnackbarMessage(err.response?.data?.title || 'Failed to submit review. Please try again.');
-        setSnackbarOpen(true);
+      console.error('Failed to submit review:', err);
+      setSnackbarMessage(err.response?.data?.title || 'Failed to submit review. Please try again.');
+      setSnackbarOpen(true);
     }
-};
+  };
+
   return (
     <Box sx={{ 
       position: 'relative',
@@ -363,14 +438,13 @@ const handleSubmitReview = async () => {
             variant="h3"
             component="h1"
             sx={{ 
-              fontWeight: 700,
-              color: 'white',
+              ...pokemonFontStyle,
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
               mb: 2,
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+              lineHeight: 1.2
             }}
           >
-            WELCOME TO THE POKÉMON WORLD
+            WELCOME TO THE POKEMON WORLD
           </Typography>
           
           <Typography
@@ -383,7 +457,7 @@ const handleSubmitReview = async () => {
               textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
             }}
           >
-            Discover and catch all your favorite Pokémon
+            Discover and catch all your favorite Pokemon
           </Typography>
           
           <Button
@@ -401,7 +475,7 @@ const handleSubmitReview = async () => {
               }
             }}
           >
-            Explore Pokémon
+            Explore Pokemon
           </Button>
         </Box>
       </Box>
@@ -424,92 +498,102 @@ const handleSubmitReview = async () => {
         }}>
           {/* Pokémon Slider */}
           <Box sx={{ flex: 1 }}>
-  <Typography variant="h4" sx={{ mb: 4, fontWeight: 600, textAlign: 'center' }}>
-    Featured Pokémon
-  </Typography>
+            <Typography variant="h4" sx={{ 
+              mb: 4, 
+              fontWeight: 600, 
+              textAlign: 'center',
+              ...pokemonFontStyle,
+              fontSize: '2rem'
+            }}>
+              Pokédex
+            </Typography>
 
-  {loading ? (
-    <Box display="flex" justifyContent="center">
-      <CircularProgress size={60} />
-    </Box>
-  ) : error ? (
-    <Alert severity="error">{error}</Alert>
-  ) : pokemons.length > 0 ? (
-    <Box sx={{ position: 'relative', minHeight: '400px', display: 'flex', alignItems: 'center' }}>
-      <IconButton 
-        onClick={handlePrev}
-        sx={{ 
-          position: 'absolute',
-          left: { xs: -2, sm: -4 },
-          zIndex: 1,
-          bgcolor: 'background.paper',
-          '&:hover': { bgcolor: 'primary.main', color: 'white' }
-        }}
-      >
-        <ChevronLeft fontSize="large" />
-      </IconButton>
+            {loading ? (
+              <Box display="flex" justifyContent="center">
+                <CircularProgress size={60} />
+              </Box>
+            ) : error ? (
+              <Alert severity="error">{error}</Alert>
+            ) : pokemons.length > 0 ? (
+              <Box sx={{ position: 'relative', minHeight: '400px', display: 'flex', alignItems: 'center' }}>
+                <IconButton 
+                  onClick={handlePrev}
+                  sx={{ 
+                    position: 'absolute',
+                    left: { xs: -2, sm: -4 },
+                    zIndex: 1,
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: 'primary.main', color: 'white' }
+                  }}
+                >
+                  <ChevronLeft fontSize="large" />
+                </IconButton>
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', px: 2 }}>
-        <Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
-          <img 
-            src={pokemons[currentIndex].imageUrl} 
-            alt={pokemons[currentIndex].name}
-            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-          />
-        </Box>
-        
-        <Typography variant="h5" sx={{ mb: 1 }}>{pokemons[currentIndex].name}</Typography>
-        
-        {/* Static type display */}
-        {/* Inside the slider section, replace the static type display with: */}
-<Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-  {getPokemonCategories(pokemons[currentIndex].name).map((type) => (
-    <Chip
-      key={type}
-      label={type.charAt(0).toUpperCase() + type.slice(1)}
-      avatar={
-        <Avatar sx={{ 
-          bgcolor: 'transparent',
-          color: 'inherit',
-          width: 24,
-          height: 24
-        }}>
-          {getTypeIcon(type)}
-        </Avatar>
-      }
-      sx={{
-        backgroundColor: getTypeColor(type),
-        color: 'white',
-        fontWeight: 'bold'
-      }}
-    />
-  ))}
-</Box>
-        
-        <Chip label={`${currentIndex + 1}/${pokemons.length}`} color="primary" sx={{ fontWeight: 500 }} />
-      </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', px: 2 }}>
+                  <Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+                    <img 
+                      src={pokemons[currentIndex].imageUrl} 
+                      alt={pokemons[currentIndex].name}
+                      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                    />
+                  </Box>
+                  
+                  <Typography variant="h5" sx={{ mb: 1 }}>{pokemons[currentIndex].name}</Typography>
+                  
+                  <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                    {getPokemonCategories(pokemons[currentIndex].name).map((type) => (
+                      <Chip
+                        key={type}
+                        label={type.charAt(0).toUpperCase() + type.slice(1)}
+                        avatar={
+                          <Avatar sx={{ 
+                            bgcolor: 'transparent',
+                            color: 'inherit',
+                            width: 24,
+                            height: 24
+                          }}>
+                            {getTypeIcon(type)}
+                          </Avatar>
+                        }
+                        sx={{
+                          backgroundColor: getTypeColor(type),
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                  
+                  <Chip label={`${currentIndex + 1}/${pokemons.length}`} color="primary" sx={{ fontWeight: 500 }} />
+                </Box>
 
-      <IconButton 
-        onClick={handleNext}
-        sx={{ 
-          position: 'absolute',
-          right: { xs: -2, sm: -4 },
-          zIndex: 1,
-          bgcolor: 'background.paper',
-          '&:hover': { bgcolor: 'primary.main', color: 'white' }
-        }}
-      >
-        <ChevronRight fontSize="large" />
-      </IconButton>
-    </Box>
-  ) : (
-    <Alert severity="info">No Pokémon found</Alert>
-  )}
-</Box>  
+                <IconButton 
+                  onClick={handleNext}
+                  sx={{ 
+                    position: 'absolute',
+                    right: { xs: -2, sm: -4 },
+                    zIndex: 1,
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: 'primary.main', color: 'white' }
+                  }}
+                >
+                  <ChevronRight fontSize="large" />
+                </IconButton>
+              </Box>
+            ) : (
+              <Alert severity="info">No Pokémon found</Alert>
+            )}
+          </Box>  
 
           {/* Card Display */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h4" sx={{ mb: 4, fontWeight: 600, textAlign: 'center', color: '#3B4CCA' }}>
+            <Typography variant="h4" sx={{ 
+              mb: 4, 
+              fontWeight: 600, 
+              textAlign: 'center',
+              ...pokemonFontStyle,
+              fontSize: '2rem'
+            }}>
               Eevee Evolutions
             </Typography>
 
@@ -570,20 +654,32 @@ const handleSubmitReview = async () => {
           flexDirection: { xs: 'column', lg: 'row' }, 
           gap: 4,
           px: { xs: 0, md: 2 },
-          mt: 4
+          mt: 4,
+          alignItems: 'flex-start'
         }}>
-          {/* Events Section - now taking half width */}
+          {/* Events Section */}
           <Box sx={{ 
             width: { xs: '100%', lg: '50%' },
             position: { lg: 'sticky' },
             top: { lg: '80px' },
             alignSelf: 'flex-start'
           }}>
-            <Typography variant="h4" sx={{ mb: 3, fontWeight: 600, color: '#3B4CCA' }}>
+            <Typography variant="h4" sx={{ 
+              mb: 3, 
+              fontWeight: 600,
+              ...pokemonFontStyle,
+              fontSize: '2rem',
+              textAlign: { xs: 'center', lg: 'left' }
+            }}>
               Upcoming Events
             </Typography>
 
-            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', border: '2px solid #FFDE00' }}>
+            <Paper elevation={3} sx={{ 
+              borderRadius: 2, 
+              overflow: 'hidden', 
+              border: '2px solid #FFDE00',
+              height: '100%'
+            }}>
               <List dense sx={{ py: 0 }}>
                 {pokemonEvents.map((event, index) => (
                   <React.Fragment key={index}>
@@ -629,47 +725,67 @@ const handleSubmitReview = async () => {
             </Paper>
           </Box>
 
-          {/* Reviews Section - now taking half width */}
-          <Box sx={{ 
-            width: { xs: '100%', lg: '50%' },
-            alignSelf: 'flex-start'
-          }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-              <Typography variant="h4" sx={{ fontWeight: 600, color: '#3B4CCA' }}>
-                Trainer Reviews
-              </Typography>
-              <Button 
-                variant="contained"
-                onClick={handleOpenReviewDialog}
-                sx={{
-                  bgcolor: '#3B4CCA',
-                  color: 'white',
-                  '&:hover': {
-                    bgcolor: '#2a3a9a'
-                  }
-                }}
-              >
-                Add Review
-              </Button>
-            </Box>
+          {/* Reviews Section */}
+          <Box id="reviews-section" sx={{ 
+        width: { xs: '100%', lg: '50%' },
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%'
+      }}>
+            <Typography variant="h4" sx={{ 
+              mb: 3, 
+              fontWeight: 600,
+              ...pokemonFontStyle,
+              fontSize: '2rem',
+              textAlign: { xs: 'center', lg: 'left' }
+            }}>
+                Reviews
+            </Typography>
 
             {reviewsLoading ? (
-              <Box display="flex" justifyContent="center">
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                 <CircularProgress size={40} />
               </Box>
             ) : reviews.length === 0 ? (
-              <Paper elevation={0} sx={{ p: 3, textAlign: 'center', borderRadius: 4 }}>
-                <Typography variant="h6" color="text.secondary">
+              <Paper elevation={0} sx={{ 
+                p: 3, 
+                textAlign: 'center', 
+                borderRadius: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '200px'
+              }}>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
                   No reviews yet. Be the first to review!
                 </Typography>
+                <Button 
+                  variant="contained"
+                  onClick={handleOpenReviewDialog}
+                  sx={{
+                    bgcolor: '#3B4CCA',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: '#2a3a9a'
+                    }
+                  }}
+                >
+                  Add Review
+                </Button>
               </Paper>
             ) : (
-              <Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Grid container spacing={3}>
                   {reviews.slice(0, showAllReviews ? reviews.length : 1).map((review) => (
                     <Grid item xs={12} sm={6} key={review.id}>
-                      <Card elevation={2} sx={{ borderRadius: 4, height: '100%' }}>
-                        <CardContent>
+                      <Card elevation={2} sx={{ 
+                        borderRadius: 4, 
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}>
+                        <CardContent sx={{ flex: 1 }}>
                           <Box display="flex" alignItems="center" mb={2}>
                             <Avatar sx={{ 
                               width: 50, 
@@ -719,8 +835,15 @@ const handleSubmitReview = async () => {
                   ))}
                 </Grid>
                 
-                {reviews.length > 1 && (
-                  <Box display="flex" justifyContent="center" mt={3}>
+                <Box sx={{ 
+                  mt: 3,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  pr: 2
+                }}>
+                  {reviews.length > 1 && (
                     <Button 
                       variant="outlined" 
                       onClick={() => setShowAllReviews(!showAllReviews)}
@@ -735,80 +858,108 @@ const handleSubmitReview = async () => {
                     >
                       {showAllReviews ? 'Show Less' : `Show More (${reviews.length - 1})`}
                     </Button>
-                  </Box>
-                )}
+                  )}
+                  <Button 
+                    variant="contained"
+                    onClick={handleOpenReviewDialog}
+                    sx={{
+                      bgcolor: '#3B4CCA',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: '#2a3a9a'
+                      }
+                    }}
+                  >
+                    Add Review
+                  </Button>
+                </Box>
               </Box>
             )}
           </Box>
         </Container>
       </Box>
 
-      {/* Review Form Dialog */}
-      <Dialog open={openReviewDialog} onClose={handleCloseReviewDialog}>
-        <DialogTitle>Add Your Review</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="pokemonName"
-            label="Pokémon Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newReview.pokemonName}
-            onChange={handleReviewChange}
-            sx={{ mb: 2 }}
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              Rating:
-            </Typography>
-            <MuiRating
-              name="rating"
-              value={newReview.rating}
-              onChange={handleRatingChange}
-              precision={0.5}
-            />
-          </Box>
-          <TextField
-            margin="dense"
-            name="text"
-            label="Your Review"
-            type="text"
-            fullWidth
-            variant="outlined"
-            multiline
-            rows={4}
-            value={newReview.text}
-            onChange={handleReviewChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseReviewDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmitReview}
-            disabled={!newReview.pokemonName || !newReview.text}
-            variant="contained"
-            sx={{
-              bgcolor: '#3B4CCA',
-              color: 'white',
-              '&:hover': {
-                bgcolor: '#2a3a9a'
-              }
-            }}
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+     
+      <Box id="games-section" sx={{ py: 8, bgcolor: 'background.paper' }}>
+  <Container maxWidth="xl">
+    <Typography 
+      variant="h4" 
+      component="h1" 
+      gutterBottom 
+      sx={{ 
+        mb: 4, 
+        fontWeight: 600, 
+        textAlign: 'center',
+        ...pokemonFontStyle,
+        fontSize: '2rem'
+      }}
+    >
+      Best Pokémon Games
+    </Typography>
+    
+    <Typography 
+      variant="h6" 
+      component="h2" 
+      sx={{ 
+        textAlign: 'center', 
+        mb: 6,
+        color: 'text.secondary',
+        fontSize: '1.1rem'
+      }}
+    >
+      Explore the greatest Pokémon adventures through the years
+    </Typography>
 
-      {/* Success/Failure Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+    <Grid container spacing={4}>
+      {games.map((game, index) => (
+        <Grid item xs={12} sm={6} md={4} key={index}>
+          <GameCard>
+            <CardMedia
+              component="img"
+              height="200"
+              image={game.image}
+              alt={game.title}
+              sx={{ objectFit: 'cover' }}
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                {game.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {game.description}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Chip 
+                  label={game.year} 
+                  color="primary" 
+                  size="small" 
+                  sx={{ fontWeight: 'bold' }}
+                />
+                <Chip 
+                  label={game.rating} 
+                  color="success" 
+                  size="small" 
+                  sx={{ fontWeight: 'bold' }}
+                />
+              </Box>
+              <Box sx={{ mt: 2 }}>
+                {game.platforms.map((platform, i) => (
+                  <Chip 
+                    key={i}
+                    label={platform} 
+                    variant="outlined" 
+                    size="small" 
+                    sx={{ mr: 1, mb: 1 }}
+                  />
+                ))}
+              </Box>
+            </CardContent>
+          </GameCard>
+        </Grid>
+      ))}
+    </Grid>
+  </Container>
+</Box>
     </Box>
   );
 };
