@@ -94,9 +94,7 @@ const Navbar = () => {
               { icon: <HomeIcon />, text: 'Home', to: '/', anchor: null },
               { icon: <PetsIcon />, text: 'Pokémons', to: null, anchor: '#pokemon-slider' },
               { icon: <CategoryIcon />, text: 'Categories', to: '/categories', anchor: null },
-              { icon: <GroupsIcon />, text: 'Owners', to: '/owners', anchor: null },
               { icon: <ReviewsIcon />, text: 'Reviews', to: '/reviews', anchor: null },
-              { icon: <PersonIcon />, text: 'Reviewers', to: '/reviewers', anchor: null }
             ].map((item, index) => (
               <Button
                 key={index}

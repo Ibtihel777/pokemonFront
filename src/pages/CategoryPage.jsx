@@ -3,43 +3,78 @@ import {
   Container,
   CircularProgress,
   Alert,
-  Grid,
-  Card,
-  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Avatar,
   Typography,
-  Box
+  Box,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import { getCategories } from '../services/categoryService';
 
-// Category icon images (type symbols)
+// Category icons using emojis
 const categoryIcons = {
-  fire: '/fire.jpg',
-  water: '/water.jpg',
-  electric: '/electric.jpg',
-  ice: '/ice.jpg',
-  default: '/default.jpg'
+  fire: '🔥',
+  water: '💧',
+  electric: '⚡',
+  ice: '❄️',
+  grass: '🌿',
+  poison: '☠️',
+  ground: '⛰️',
+  rock: '🪨',
+  bug: '🐛',
+  ghost: '👻',
+  steel: '🛡️',
+  fighting: '🥊',
+  flying: '🦅',
+  psychic: '🔮',
+  dark: '🌑',
+  fairy: '🧚',
+  dragon: '🐉',
+  normal: '🟫',
+  default: '❓'
 };
-
 
 const CategoryPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pokemonByCategory, setPokemonByCategory] = useState({});
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const categoriesData = await getCategories();
+        setCategories(categoriesData);
+        
+        // Fetch Pokémon for all categories immediately
+        const pokemonData = {};
+        for (const category of categoriesData) {
+          try {
+            const response = await fetch(`http://localhost:5029/PokemonReviewAPP/Category/pokemon/${category.id}`);
+            pokemonData[category.id] = await response.json();
+          } catch (err) {
+            console.error(`Error fetching Pokémon for category ${category.id}:`, err);
+            pokemonData[category.id] = [];
+          }
+        }
+        setPokemonByCategory(pokemonData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchCategories = async () => {
-    try {
-      const data = await getCategories();
-      setCategories(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchData();
+  }, []);
 
   const getIconForCategory = (name) => {
     const key = name.toLowerCase();
@@ -51,30 +86,61 @@ const CategoryPage = () => {
 
   return (
     <Container>
-      <h1>Categories</h1>
+      <Typography variant="h3" component="h1" gutterBottom sx={{ my: 3 }}>
+        Categories
+      </Typography>
 
-      <Grid container spacing={3}>
-        {categories.map((category) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={category.id}>
-            <Card sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
-              <Box
-                component="img"
-                src={getIconForCategory(category.name)}
-                alt={category.name}
-                sx={{ width: 50, height: 50, mb: 1 }}
-              />
-              <CardContent>
-                <Typography variant="h6" align="center">
-                  {category.name}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ width: '30%' }}>Category</TableCell>
+              <TableCell sx={{ width: '70%' }}>Pokémon</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {categories.map((category) => (
+              <TableRow key={category.id} hover>
+                <TableCell>
+                  <Box display="flex" alignItems="center">
+                    <Avatar sx={{ width: 36, height: 36, fontSize: '1.5rem', mr: 2 }}>
+                      {getIconForCategory(category.name)}
+                    </Avatar>
+                    <Typography variant="subtitle1">{category.name}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {pokemonByCategory[category.id] ? (
+                    pokemonByCategory[category.id].length > 0 ? (
+                      <List dense sx={{ maxHeight: 200, overflow: 'auto' }}>
+                        {pokemonByCategory[category.id].map((pokemon) => (
+                          <ListItem key={pokemon.id} disablePadding>
+                            <ListItemText 
+                              primary={pokemon.name} 
+                              secondary={`Born: ${new Date(pokemon.birthDate).toLocaleDateString()}`} 
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No Pokémon in this category
+                      </Typography>
+                    )
+                  ) : (
+                    <Box display="flex" alignItems="center">
+                      <CircularProgress size={20} sx={{ mr: 2 }} />
+                      <Typography variant="body2">Loading Pokémon...</Typography>
+                    </Box>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
-  
 };
 
 export default CategoryPage;
