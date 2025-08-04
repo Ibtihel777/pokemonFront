@@ -1,7 +1,9 @@
+// Importation des composants React et MUI (Material UI)
 import React, { useState, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import { keyframes } from '@emotion/react';
 
+// Composants MUI utilisés dans la page (mise en page, boutons, alertes, etc.)
 import { 
   Box, 
   Typography, 
@@ -36,20 +38,20 @@ import { getPokemons } from '../services/pokemonServices';
 import api from '../services/api';
 
 
-// Import Pokemon font (you'll need to include this in your project)
-// Add this to your CSS or import the font file
+// Style personnalisé pour le texte Pokémon
 const pokemonFontStyle = {
   fontFamily: '"Pokemon Solid", sans-serif',
   letterSpacing: '2px',
   textShadow: '3px 3px 0 #3B4CCA, -1px -1px 0 #3B4CCA, 1px -1px 0 #3B4CCA, -1px 1px 0 #3B4CCA, 1px 1px 0 #3B4CCA',
   color: '#FFDE00'
 };
+// Animation des flottement pour les cartes de jeu
 const float = keyframes`
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
 `;
-
+//style des cartes de jeu
 const GameCard = styled(Card)(({ theme }) => ({
   maxWidth: 345,
   margin: 'auto',
@@ -174,25 +176,32 @@ const games = [
   }
 ];
 
+
 const HomePage = () => {
+  //declaration des etats necessaires pour la page d'accueil
+  //États pour les catégories, les pokémons, les erreurs, le chargement, etc.
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [pokemonByCategory, setPokemonByCategory] = useState({});
   const [pokemons, setPokemons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);// Pour le slider
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);// Pour les cartes d’Eevee
   const [fadeIn, setFadeIn] = useState(true);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [showAllReviews, setShowAllReviews] = useState(false);
+ 
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [newReview, setNewReview] = useState({
-    pokemonName: '',
-    rating: 0,
-    text: ''
-  });
+  pokemonId: '',
+  pokemonName: '',
+  reviewerName: '',
+  rating: 0,
+  text: ''
+});
+const [availablePokemons, setAvailablePokemons] = useState([]);
   
   const getTypeIcon = (type) => {
     const typeIcons = {
@@ -245,6 +254,7 @@ const HomePage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   
+  
   const getReviewerName = (reviewId) => {
     const reviewerIndex = (reviewId - 11) % reviewers.length;
     const reviewer = reviewers[reviewerIndex] || {firstName: "Unknown", lastName: "Trainer"};
@@ -259,7 +269,66 @@ const HomePage = () => {
       .toUpperCase()
       .substring(0, 2);
   };
-  
+  const handleReviewSubmit = async () => {
+  try {
+    // First check if reviewer exists
+    let reviewerId;
+    const existingReviewer = reviewers.find(r => 
+      `${r.firstName} ${r.lastName}`.toLowerCase() === newReview.reviewerName.toLowerCase()
+    );
+    
+    if (!existingReviewer) {
+      // If reviewer doesn't exist, create a new one
+      const newReviewer = {
+        firstName: newReview.reviewerName.split(' ')[0],
+        lastName: newReview.reviewerName.split(' ')[1] || '',
+      };
+      
+      // In a real app, you would make an API call here to create the reviewer
+      // For now, we'll just generate a new ID
+      reviewerId = Math.max(...reviewers.map(r => r.id)) + 1;
+      reviewers.push({...newReviewer, id: reviewerId});
+    } else {
+      reviewerId = existingReviewer.id;
+    }
+
+    // Submit the review
+    const reviewData = {
+      title: newReview.pokemonName,
+      text: newReview.text,
+      rating: newReview.rating,
+    };
+
+    const response = await api.post(
+      `/review?reviewerId=${reviewerId}&pokeId=${newReview.pokemonId}`,
+      reviewData
+    );
+
+    // Add the new review to state
+    const createdReview = {
+      ...response.data,
+      reviewerName: newReview.reviewerName,
+      pokemonName: newReview.pokemonName,
+      date: new Date(),
+    };
+
+    setReviews([createdReview, ...reviews]);
+    setSnackbarMessage('Review submitted successfully!');
+    setSnackbarOpen(true);
+    setOpenReviewDialog(false);
+    setNewReview({
+      pokemonId: '',
+      pokemonName: '',
+      reviewerName: '',
+      rating: 0,
+      text: ''
+    });
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    setSnackbarMessage('Failed to submit review');
+    setSnackbarOpen(true);
+  }
+};
   const getPokemonCategories = (pokemonName) => {
     if (categoriesLoading) return ['normal'];
     const pokemonCategories = [];
@@ -270,7 +339,7 @@ const HomePage = () => {
     });
     return pokemonCategories.length > 0 ? pokemonCategories : ['normal'];
   };
-  
+  // Récupère la liste des catégories au chargement de la page
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -285,6 +354,7 @@ const HomePage = () => {
     fetchCategories();
   }, []);
   
+  // Récupère les Pokémon pour chaque catégorie après que les catégories soient chargées
   useEffect(() => {
     const fetchPokemonForCategories = async () => {
       if (categoriesLoading || categories.length === 0) return;
@@ -303,6 +373,7 @@ const HomePage = () => {
     fetchPokemonForCategories();
   }, [categories, categoriesLoading]);
 
+  // Récupère tous les Pokémon et les reviews au montage du composant
   useEffect(() => {
     const fetchPokemons = async () => {
       try {
@@ -338,7 +409,8 @@ const HomePage = () => {
 
     fetchPokemons();
     fetchReviews();
-
+    
+  // Slider automatique pour les cartes d’Eevee
     const cardInterval = setInterval(() => {
       setFadeIn(false);
       setTimeout(() => {
@@ -358,49 +430,6 @@ const HomePage = () => {
     setCurrentIndex(prev => (prev === 0 ? pokemons.length - 1 : prev - 1));
   };
 
-  const handleOpenReviewDialog = () => {
-    setOpenReviewDialog(true);
-  };
-
-  const handleCloseReviewDialog = () => {
-    setOpenReviewDialog(false);
-    setNewReview({ pokemonName: '', rating: 0, text: '' });
-  };
-
-  const handleReviewChange = (e) => {
-    const { name, value } = e.target;
-    setNewReview(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleRatingChange = (event, newValue) => {
-    setNewReview(prev => ({ ...prev, rating: newValue }));
-  };
-
-  const handleSubmitReview = async () => {
-    try {
-      const response = await api.post('/review', {
-        Title: newReview.pokemonName,
-        Text: newReview.text,
-        Rating: newReview.rating
-      });
-      
-      const addedReview = {
-        ...response.data,
-        reviewerName: "You",
-        date: new Date(),
-        pokemonName: newReview.pokemonName
-      };
-      
-      setReviews(prev => [addedReview, ...prev]);
-      setSnackbarMessage('Review submitted successfully!');
-      setSnackbarOpen(true);
-      handleCloseReviewDialog();
-    } catch (err) {
-      console.error('Failed to submit review:', err);
-      setSnackbarMessage(err.response?.data?.title || 'Failed to submit review. Please try again.');
-      setSnackbarOpen(true);
-    }
-  };
 
   return (
     <Box sx={{ 
@@ -725,157 +754,146 @@ const HomePage = () => {
             </Paper>
           </Box>
 
-          {/* Reviews Section */}
-          <Box id="reviews-section" sx={{ 
-        width: { xs: '100%', lg: '50%' },
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%'
-      }}>
-            <Typography variant="h4" sx={{ 
-              mb: 3, 
-              fontWeight: 600,
-              ...pokemonFontStyle,
-              fontSize: '2rem',
-              textAlign: { xs: 'center', lg: 'left' }
-            }}>
-                Reviews
-            </Typography>
+{/* Reviews Section */}
+<Box id="reviews-section" sx={{ 
+  width: { xs: '100%', lg: '50%' },
+  display: 'flex',
+  flexDirection: 'column'
+}}>
+  <Typography variant="h4" sx={{ 
+    mb: 3, 
+    fontWeight: 600,
+    ...pokemonFontStyle,
+    fontSize: '2rem',
+    textAlign: { xs: 'center', lg: 'left' }
+  }}>
+    Reviews
+  </Typography>
 
-            {reviewsLoading ? (
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                <CircularProgress size={40} />
-              </Box>
-            ) : reviews.length === 0 ? (
-              <Paper elevation={0} sx={{ 
-                p: 3, 
-                textAlign: 'center', 
-                borderRadius: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '200px'
-              }}>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                  No reviews yet. Be the first to review!
-                </Typography>
-                <Button 
-                  variant="contained"
-                  onClick={handleOpenReviewDialog}
-                  sx={{
-                    bgcolor: '#3B4CCA',
+  {reviewsLoading ? (
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <CircularProgress size={40} />
+    </Box>
+  ) : reviews.length === 0 ? (
+    <Paper elevation={0} sx={{ 
+      p: 3, 
+      textAlign: 'center', 
+      borderRadius: 4,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '200px'
+    }}>
+      <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+        No reviews yet. Be the first to review!
+      </Typography>
+    </Paper>
+  ) : (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Grid container spacing={3}>
+        {reviews.slice(0, showAllReviews ? reviews.length : 1).map((review) => (
+          <Grid item xs={12} key={review.id}>
+            <Card elevation={2} sx={{ 
+              borderRadius: 4, 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <CardContent sx={{ flex: 1 }}>
+                {/* Review content remains the same */}
+                <Box display="flex" alignItems="center" mb={2}>
+                  <Avatar sx={{ 
+                    width: 50, 
+                    height: 50, 
+                    mr: 2,
+                    bgcolor: review.reviewerName === "You" ? '#4CAF50' : 'secondary.main',
                     color: 'white',
-                    '&:hover': {
-                      bgcolor: '#2a3a9a'
-                    }
-                  }}
-                >
-                  Add Review
-                </Button>
-              </Paper>
-            ) : (
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Grid container spacing={3}>
-                  {reviews.slice(0, showAllReviews ? reviews.length : 1).map((review) => (
-                    <Grid item xs={12} sm={6} key={review.id}>
-                      <Card elevation={2} sx={{ 
-                        borderRadius: 4, 
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column'
-                      }}>
-                        <CardContent sx={{ flex: 1 }}>
-                          <Box display="flex" alignItems="center" mb={2}>
-                            <Avatar sx={{ 
-                              width: 50, 
-                              height: 50, 
-                              mr: 2,
-                              bgcolor: review.reviewerName === "You" ? '#4CAF50' : 'secondary.main',
-                              color: 'white',
-                              fontSize: '1rem'
-                            }}>
-                              {review.reviewerName === "You" ? "Y" : getInitials(review.reviewerName)}
-                            </Avatar>
-                            <Box>
-                              <Typography variant="subtitle1" fontWeight="600">
-                                {review.reviewerName}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                Pokémon Trainer
-                              </Typography>
-                            </Box>
-                          </Box>
-                          
-                          <Box mb={2}>
-                            <Chip 
-                              label={review.pokemonName} 
-                              color="primary" 
-                              size="small"
-                              sx={{ fontWeight: 700, mb: 1 }}
-                            />
-                            <MuiRating 
-                              value={review.rating} 
-                              precision={0.5} 
-                              readOnly 
-                              size="small"
-                            />
-                          </Box>
-                          
-                          <Typography variant="body2" paragraph>
-                            {review.text}
-                          </Typography>
-                          
-                          <Typography variant="caption" color="text.secondary">
-                            Reviewed on {review.date.toLocaleDateString()}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-                
-                <Box sx={{ 
-                  mt: 3,
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: 2,
-                  flexWrap: 'wrap',
-                  pr: 2
-                }}>
-                  {reviews.length > 1 && (
-                    <Button 
-                      variant="outlined" 
-                      onClick={() => setShowAllReviews(!showAllReviews)}
-                      sx={{
-                        color: '#3B4CCA',
-                        borderColor: '#3B4CCA',
-                        '&:hover': {
-                          backgroundColor: '#3B4CCA10',
-                          borderColor: '#3B4CCA'
-                        }
-                      }}
-                    >
-                      {showAllReviews ? 'Show Less' : `Show More (${reviews.length - 1})`}
-                    </Button>
-                  )}
-                  <Button 
-                    variant="contained"
-                    onClick={handleOpenReviewDialog}
-                    sx={{
-                      bgcolor: '#3B4CCA',
-                      color: 'white',
-                      '&:hover': {
-                        bgcolor: '#2a3a9a'
-                      }
-                    }}
-                  >
-                    Add Review
-                  </Button>
+                    fontSize: '1rem'
+                  }}>
+                    {review.reviewerName === "You" ? "Y" : getInitials(review.reviewerName)}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="600">
+                      {review.reviewerName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Pokémon Trainer
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            )}
-          </Box>
+                
+                <Box mb={2}>
+                  <Chip 
+                    label={review.pokemonName} 
+                    color="primary" 
+                    size="small"
+                    sx={{ fontWeight: 700, mb: 1 }}
+                  />
+                  <MuiRating 
+                    value={review.rating} 
+                    precision={0.5} 
+                    readOnly 
+                    size="small"
+                  />
+                </Box>
+                
+                <Typography variant="body2" paragraph>
+                  {review.text}
+                </Typography>
+                
+                <Typography variant="caption" color="text.secondary">
+                  Reviewed on {review.date.toLocaleDateString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      
+      {/* Button Container - Modified */}
+      <Box sx={{ 
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: 2,
+        flexWrap: 'wrap',
+        px: 2,
+        mt: -1 // Adjust this to reduce space
+      }}>
+        {reviews.length > 1 && (
+          <Button 
+            variant="outlined" 
+            onClick={() => setShowAllReviews(!showAllReviews)}
+            sx={{
+              color: '#3B4CCA',
+              borderColor: '#3B4CCA',
+              '&:hover': {
+                backgroundColor: '#3B4CCA10',
+                borderColor: '#3B4CCA'
+              }
+            }}
+          >
+            {showAllReviews ? 'Show Less' : `Show More (${reviews.length - 1})`}
+          </Button>
+        )}
+        <Button 
+          variant="contained"
+          onClick={() => setOpenReviewDialog(true)}
+          sx={{
+            bgcolor: '#FFDE00',
+            color: '#3B4CCA',
+            fontWeight: 'bold',
+            '&:hover': {
+              bgcolor: '#FFE733'
+            }
+          }}
+        >
+          Add Review
+        </Button>
+      </Box>
+    </Box>
+  )}
+</Box>
         </Container>
       </Box>
 
@@ -960,6 +978,96 @@ const HomePage = () => {
     </Grid>
   </Container>
 </Box>
+{/* Add Review Dialog */}
+<Dialog open={openReviewDialog} onClose={() => setOpenReviewDialog(false)} maxWidth="sm" fullWidth>
+  <DialogTitle sx={{ ...pokemonFontStyle, color: '#3B4CCA' }}>Add New Review</DialogTitle>
+  <DialogContent>
+    <Box sx={{ mt: 2 }}>
+      <TextField
+        select
+        fullWidth
+        label="Pokémon"
+        value={newReview.pokemonId}
+        onChange={(e) => {
+          const selectedPokemon = pokemons.find(p => p.id.toString() === e.target.value);
+          setNewReview({
+            ...newReview,
+            pokemonId: e.target.value,
+            pokemonName: selectedPokemon?.name || ''
+          });
+        }}
+        SelectProps={{
+          native: true,
+        }}
+        sx={{ mb: 2 }}
+      >
+        <option value="">Select a Pokémon</option>
+        {pokemons.map((pokemon) => (
+          <option key={pokemon.id} value={pokemon.id}>
+            {pokemon.name}
+          </option>
+        ))}
+      </TextField>
+
+      <TextField
+        fullWidth
+        label="Your Name"
+        value={newReview.reviewerName}
+        onChange={(e) => setNewReview({...newReview, reviewerName: e.target.value})}
+        sx={{ mb: 2 }}
+      />
+
+      <Box sx={{ mb: 2 }}>
+        <Typography component="legend">Rating</Typography>
+        <MuiRating
+          value={newReview.rating}
+          onChange={(e, newValue) => setNewReview({...newReview, rating: newValue})}
+          precision={0.5}
+        />
+      </Box>
+
+      <TextField
+        fullWidth
+        label="Your Review"
+        multiline
+        rows={4}
+        value={newReview.text}
+        onChange={(e) => setNewReview({...newReview, text: e.target.value})}
+      />
+    </Box>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenReviewDialog(false)}>Cancel</Button>
+    <Button 
+      onClick={handleReviewSubmit}
+      variant="contained"
+      sx={{
+        bgcolor: '#FFDE00',
+        color: '#3B4CCA',
+        '&:hover': {
+          bgcolor: '#FFE733'
+        }
+      }}
+    >
+      Submit Review
+    </Button>
+  </DialogActions>
+</Dialog>
+
+{/* Snackbar for notifications */}
+<Snackbar
+  open={snackbarOpen}
+  autoHideDuration={6000}
+  onClose={() => setSnackbarOpen(false)}
+>
+  <Alert 
+    onClose={() => setSnackbarOpen(false)} 
+    severity="success"
+    sx={{ width: '100%' }}
+  >
+    {snackbarMessage}
+  </Alert>
+</Snackbar>
     </Box>
   );
 };
